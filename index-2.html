@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Fortune Pin | Carry a little fortune</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap">
+<style>
+:root{
+  --bg:#7D4A3A; --deep:#5A2E25; --orange:#F58B4C; --cream:#FDF1DE; --peach:#F9B493;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+  color-scheme:dark;
+}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*::before,*::after{box-sizing:inherit}
+body{margin:0;background:var(--bg);color:var(--cream);font-family:'Fredoka','Trebuchet MS',system-ui,sans-serif;line-height:1.5;min-height:100vh}
+main{max-width:30rem;margin:0 auto;padding:1.5rem 1.25rem 3rem}
+.ears{display:flex;justify-content:space-between;padding:0 12%;margin-bottom:-1.1rem;position:relative;z-index:0}
+.ear{width:4.2rem;height:4.6rem;background:var(--orange);border:.45rem solid var(--deep);border-bottom:0;border-radius:90% 10% 0 0;position:relative}
+.ear::after{content:"";position:absolute;inset:.9rem .7rem 0;background:var(--peach);border-radius:90% 10% 0 0}
+.ear.r{transform:scaleX(-1)}
+h1{position:relative;z-index:1;margin:0;text-align:center;font-weight:700;font-size:clamp(2.6rem,14vw,3.8rem);line-height:.95;color:var(--orange);
+  -webkit-text-stroke:.5rem var(--deep);paint-order:stroke fill;text-shadow:0 .25rem 0 var(--deep);letter-spacing:.02em}
+.tag{display:block;width:max-content;max-width:100%;margin:1rem auto 0;background:var(--cream);color:var(--orange);font-weight:700;padding:.3rem .9rem;border-radius:.6rem;text-align:center}
+.lead{text-align:center;margin:1.5rem 0 1rem;color:var(--cream)}
+.chips{display:flex;flex-wrap:wrap;gap:.5rem;justify-content:center;margin-bottom:1.25rem}
+.chip{font:inherit;font-weight:500;color:var(--cream);background:transparent;border:.15rem solid var(--peach);border-radius:2rem;padding:.4rem .95rem;cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--cream);color:var(--deep);border-color:var(--cream)}
+.card{background:var(--cream);color:var(--deep);border-radius:1.4rem;border:.3rem solid var(--deep);box-shadow:0 .4rem 0 var(--deep);padding:1.5rem 1.4rem;min-height:11rem;display:flex;flex-direction:column;justify-content:center;gap:.7rem}
+.kind{font-weight:600;color:var(--orange);margin:0}
+.text{font-size:1.35rem;font-weight:500;line-height:1.4;margin:0}
+.src{margin:0;font-weight:500;opacity:.8}
+.card.pop{animation:pop .35s ease-out}
+@keyframes pop{from{transform:scale(.96)}to{transform:scale(1)}}
+.draw{display:block;width:100%;margin-top:1.25rem;font:inherit;font-weight:700;font-size:1.25rem;color:var(--deep);background:var(--orange);border:.3rem solid var(--deep);border-radius:1.2rem;box-shadow:0 .35rem 0 var(--deep);padding:.9rem;cursor:pointer}
+.draw:active{transform:translateY(.25rem);box-shadow:0 .1rem 0 var(--deep)}
+.songs{margin-top:2.25rem}
+.songs h2{font-size:1.35rem;margin:0 0 .6rem;color:var(--peach)}
+.songs ul{list-style:none;margin:0;padding:0;display:grid;gap:.5rem}
+.songs a{display:block;background:var(--deep);color:var(--cream);text-decoration:none;border-radius:.9rem;padding:.7rem 1rem}
+.songs a span{display:block;opacity:.75;font-size:.95rem}
+footer{margin-top:2.25rem;text-align:center;opacity:.8;font-size:.95rem}
+.chip:focus-visible,.draw:focus-visible,.songs a:focus-visible{outline:.2rem solid var(--cream);outline-offset:.2rem}
+@media (prefers-reduced-motion:reduce){.card.pop{animation:none}}
+
+.games{margin-top:2.25rem}
+.games h2{font-size:1.35rem;margin:0 0 .6rem;color:var(--peach)}
+.gbox{background:var(--deep);border-radius:1.2rem;padding:1rem;margin-top:.9rem}
+.gbox[hidden]{display:none}
+.gmsg{margin:0 0 .8rem;text-align:center;font-weight:500}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:.5rem}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:.5rem}
+.cell{touch-action:manipulation;aspect-ratio:1;font:inherit;font-size:1.9rem;background:var(--cream);color:var(--deep);border:.2rem solid var(--bg);border-radius:.9rem;cursor:pointer;padding:0}
+.cell:disabled{opacity:.55;cursor:default}
+.cell.hit{background:var(--orange)}
+.cell.ok{background:var(--peach)}
+.stack{display:grid;gap:.6rem}
+.row{touch-action:manipulation;font:inherit;font-weight:500;font-size:1.05rem;min-height:4rem;background:var(--cream);color:var(--deep);border:.2rem solid var(--bg);border-radius:.9rem;padding:.6rem .8rem;cursor:pointer}
+.row.open{background:var(--orange);font-weight:600}
+.row:disabled{opacity:.55;cursor:default}
+.row.open:disabled{opacity:1}
+.gbtn{display:block;width:100%;margin-top:.8rem;font:inherit;font-weight:700;color:var(--deep);background:var(--orange);border:.2rem solid var(--bg);border-radius:.9rem;padding:.6rem;cursor:pointer}
+.gbtn[hidden]{display:none}
+.gstat{display:flex;justify-content:space-between;font-weight:500;margin-bottom:.7rem}
+.gtab:focus-visible,.cell:focus-visible,.row:focus-visible,.gbtn:focus-visible{outline:.2rem solid var(--cream);outline-offset:.2rem}
+.gchip{font:inherit;font-weight:500;color:var(--cream);background:transparent;border:.15rem solid var(--peach);border-radius:2rem;padding:.4rem .95rem;cursor:pointer}
+.gchip[aria-pressed="true"]{background:var(--cream);color:var(--deep);border-color:var(--cream)}
+.gchip:focus-visible{outline:.2rem solid var(--cream);outline-offset:.2rem}
+.grid5{display:grid;grid-template-columns:repeat(5,1fr);gap:.4rem}
+.grid5 .cell{font-size:1.4rem;border-radius:.7rem}
+.grid2{display:grid;grid-template-columns:repeat(2,1fr);gap:.6rem}
+.cell.bad{background:#c0504a}
+.pad{touch-action:manipulation;aspect-ratio:1.5;font-size:2.4rem;border:.2rem solid var(--bg);border-radius:1rem;opacity:.5;cursor:pointer;transition:transform .08s,opacity .08s}
+.pad.lit{opacity:1;transform:scale(1.05);box-shadow:0 0 1.2rem rgba(253,241,222,.85)}
+.lv:focus-visible,.pad:focus-visible{outline:.2rem solid var(--cream);outline-offset:.2rem}
+.songs a.gbtn{background:var(--orange);color:var(--deep);padding:.6rem;text-align:center;margin-top:.8rem;border-radius:.9rem}
+</style>
+</head>
+<body>
+<main>
+  <div class="ears" aria-hidden="true"><div class="ear"></div><div class="ear r"></div></div>
+  <h1>Fortune<br>Pin</h1>
+  <span class="tag">Carry a little fortune</span>
+
+  <p class="lead">Pick what you need today, then draw your fortune.</p>
+
+  <div class="chips" role="group" aria-label="Choose a category">
+    <button class="chip" data-k="all" aria-pressed="true">Surprise me</button>
+    <button class="chip" data-k="quote" aria-pressed="false">Quotes</button>
+    <button class="chip" data-k="verse" aria-pressed="false">Bible verses</button>
+    <button class="chip" data-k="affirm" aria-pressed="false">Affirmations</button>
+  </div>
+
+  <section class="card" id="card" aria-live="polite">
+    <p class="kind" id="kind">Your fortune</p>
+    <p class="text" id="text">Tap the button below to draw today's message.</p>
+    <p class="src" id="src"></p>
+  </section>
+
+  <button class="draw" id="draw">Draw my fortune</button>
+
+  <section class="games">
+    <h2>Mini games</h2>
+    <div class="chips" role="group" aria-label="Choose a game" style="margin-bottom:0">
+      <button class="gchip gtab" data-g="cards" aria-pressed="true">Lucky cards</button>
+      <button class="gchip gtab" data-g="fox" aria-pressed="false">Catch the fox</button>
+      <button class="gchip gtab" data-g="mem" aria-pressed="false">Memory</button>
+      <button class="gchip gtab" data-g="pat" aria-pressed="false">Pattern</button>
+    </div>
+
+    <div class="gbox" id="g-cards">
+      <p class="gmsg" id="cardsMsg"></p>
+      <div class="stack" id="cardsBox"></div>
+      <button class="gbtn" id="cardsAgain" hidden>Pick again</button>
+    </div>
+
+    <div class="gbox" id="g-fox" hidden>
+      <div class="gstat"><span>Score: <b id="foxScore">0</b></span><span>Time: <b id="foxTime">20</b>s</span><span>Best: <b id="foxBest">0</b></span></div>
+      <p class="gmsg" id="foxCombo" style="margin:0 0 .6rem">Combo: 0</p>
+      <div class="grid3" id="foxGrid"></div>
+      <p class="gmsg" id="foxMsg" style="margin:.8rem 0 0">🦊 +1 &nbsp; 🌟 +3 &nbsp; 🐺 -3 (don't tap!)<br>Keep a combo for bonus points. It gets faster!</p>
+      <button class="gbtn" id="foxStart">Start</button>
+    </div>
+
+    <div class="gbox" id="g-mem" hidden>
+      <div class="chips" style="margin-bottom:.8rem">
+        <button class="gchip lv" data-l="easy" aria-pressed="true">Easy</button>
+        <button class="gchip lv" data-l="hard" aria-pressed="false">Hard</button>
+      </div>
+      <div class="gstat"><span>Moves: <b id="memMoves">0</b></span><span>Time: <b id="memTime">0</b>s</span><span>Best: <b id="memBest">-</b></span></div>
+      <div class="grid4" id="memGrid"></div>
+      <p class="gmsg" id="memMsg" style="margin:.8rem 0 0">Find all the pairs</p>
+      <button class="gbtn" id="memAgain">New game</button>
+    </div>
+
+    <div class="gbox" id="g-pat" hidden>
+      <div class="gstat"><span>Round: <b id="patRound">0</b></span><span>Best: <b id="patBest">0</b></span></div>
+      <div class="grid2" id="padGrid"></div>
+      <p class="gmsg" id="patMsg" style="margin:.8rem 0 0">Watch the pattern, then repeat it!</p>
+      <button class="gbtn" id="patStart">Start</button>
+    </div>
+  </section>
+
+  <section class="songs">
+    <h2>Playlists to lift your mood</h2>
+    <div class="chips" id="plTabs" role="group" aria-label="Choose a playlist"></div>
+    <div id="plBox"></div>
+    <a class="gbtn" id="plOpen" target="_blank" rel="noopener">Open in Spotify</a>
+  </section>
+
+  <footer>Scan again anytime you need good luck and good vibes.</footer>
+</main>
+
+<script>
+var F = [
+  {k:"quote",t:"You don't have to be perfect today. Showing up is already a win."},
+  {k:"quote",t:"Small steps still move you forward."},
+  {k:"quote",t:"Rest if you must, but don't quit."},
+  {k:"quote",t:"Hard days make the good days feel even better."},
+  {k:"quote",t:"Your effort is planting seeds. Keep watering them."},
+  {k:"quote",t:"Be proud of how far you've come, not just how far you have to go."},
+  {k:"verse",t:"I can do all things through Christ which strengtheneth me.",s:"Philippians 4:13 (KJV)"},
+  {k:"verse",t:"Be strong and of a good courage; be not afraid, neither be thou dismayed: for the LORD thy God is with thee whithersoever thou goest.",s:"Joshua 1:9 (KJV)"},
+  {k:"verse",t:"Fear thou not; for I am with thee: be not dismayed; for I am thy God.",s:"Isaiah 41:10 (KJV)"},
+  {k:"verse",t:"Trust in the LORD with all thine heart; and lean not unto thine own understanding.",s:"Proverbs 3:5 (KJV)"},
+  {k:"verse",t:"Casting all your care upon him; for he careth for you.",s:"1 Peter 5:7 (KJV)"},
+  {k:"affirm",t:"I am capable, and I am learning every day."},
+  {k:"affirm",t:"Good things are coming my way."},
+  {k:"affirm",t:"I can handle today, one task at a time."},
+  {k:"affirm",t:"I am allowed to take a breath and start again."},
+  {k:"affirm",t:"I bring good energy wherever I go."}
+];
+var L = {quote:"Motivational quote",verse:"Bible verse",affirm:"Affirmation"};
+var P = [
+  ["Playlist 1","4WPGLhpiSwUVZGs8vAf22g"],
+  ["Playlist 2","4BNjENJRM8BIA4aW9jAA37"]
+];
+var cat="all", last=-1;
+var card=document.getElementById("card");
+
+(function(){
+  var tabs=document.getElementById("plTabs"),box=document.getElementById("plBox"),open=document.getElementById("plOpen"),bs=[];
+  function show(i){
+    var id=P[i][1];
+    bs.forEach(function(b,k){b.setAttribute("aria-pressed",k===i?"true":"false")});
+    box.innerHTML='<iframe title="'+P[i][0]+'" src="https://open.spotify.com/embed/playlist/'+id+'?utm_source=generator&theme=0" width="100%" height="352" frameborder="0" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy" style="border-radius:12px;display:block"></iframe>';
+    open.href="https://open.spotify.com/playlist/"+id;
+  }
+  P.forEach(function(p,i){
+    var b=document.createElement("button");b.className="gchip";b.textContent=p[0];b.setAttribute("aria-pressed","false");
+    b.addEventListener("click",function(){show(i)});tabs.appendChild(b);bs.push(b);
+  });
+  show(0);
+})();
+
+document.querySelectorAll(".chip").forEach(function(b){
+  b.addEventListener("click",function(){
+    cat=b.dataset.k;
+    document.querySelectorAll(".chip").forEach(function(x){x.setAttribute("aria-pressed",x===b?"true":"false")});
+    draw();
+  });
+});
+document.getElementById("draw").addEventListener("click",draw);
+
+function draw(){
+  var pool=F.filter(function(f){return cat==="all"||f.k===cat});
+  var i;
+  do{ i=Math.floor(Math.random()*pool.length) }while(pool.length>1 && pool[i]===F[last]);
+  var f=pool[i]; last=F.indexOf(f);
+  document.getElementById("kind").textContent=L[f.k];
+  document.getElementById("text").textContent=f.t;
+  document.getElementById("src").textContent=f.s||"";
+  card.classList.remove("pop"); void card.offsetWidth; card.classList.add("pop");
+}
+
+(function(){
+var $=function(i){return document.getElementById(i)};
+function sv(k,v){try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v)}catch(e){return null}}
+function num(k){return parseInt(sv(k)||"0",10)||0}
+var tabs=document.querySelectorAll(".gtab");
+tabs.forEach(function(b){b.addEventListener("click",function(){
+  tabs.forEach(function(x){x.setAttribute("aria-pressed",x===b?"true":"false")});
+  ["cards","fox","mem","pat"].forEach(function(g){$("g-"+g).hidden=(g!==b.dataset.g)});
+  stopFox();stopPat();
+})});
+
+/* Lucky cards */
+function cards(){
+  var box=$("cardsBox");box.innerHTML="";
+  $("cardsMsg").textContent="Pick one card to reveal your fortune.";$("cardsAgain").hidden=true;
+  for(var i=0;i<3;i++){
+    var b=document.createElement("button");b.className="row";b.textContent="🦊 Tap to reveal";
+    b.addEventListener("click",function(){
+      var f=F[Math.floor(Math.random()*F.length)];
+      this.textContent=f.t;this.classList.add("open");
+      box.querySelectorAll("button").forEach(function(x){x.disabled=true});
+      $("cardsMsg").textContent="This one is yours today ✨";$("cardsAgain").hidden=false;
+    });
+    box.appendChild(b);
+  }
+}
+$("cardsAgain").addEventListener("click",cards);cards();
+
+/* Catch the fox: speeds up, gold fox, wolf decoy, combo */
+var cells=[],pos=-1,kind="",score=0,left=20,combo=0,tm=null,mv=null,run=false;
+var grid=$("foxGrid");
+for(var i=0;i<9;i++){
+  var c=document.createElement("button");c.className="cell";c.setAttribute("aria-label","Hole "+(i+1));
+  c.addEventListener("click",(function(i){return function(){tapFox(i)}})(i));
+  grid.appendChild(c);cells.push(c);
+}
+$("foxBest").textContent=num("fp_best");
+function clr(){cells.forEach(function(c){c.textContent="";c.className="cell"});pos=-1}
+function info(){$("foxScore").textContent=score;$("foxCombo").textContent=combo>=5?"🔥 Combo x"+(1+Math.floor(combo/5))+" ("+combo+")":"Combo: "+combo}
+function spawn(){
+  var prev=pos;clr();
+  var n;do{n=Math.floor(Math.random()*9)}while(n===prev);
+  var r=Math.random();kind=r<.18?"wolf":(r<.3?"gold":"fox");
+  pos=n;cells[n].textContent=kind==="wolf"?"🐺":(kind==="gold"?"🌟":"🦊");
+  cells[n].classList.add(kind==="wolf"?"bad":"hit");
+  var sp=Math.max(420,950-score*14);
+  mv=setTimeout(function(){if(kind!=="wolf")combo=0;info();spawn()},sp);
+}
+function tapFox(i){
+  if(!run)return;
+  if(i!==pos){combo=0;info();return}
+  clearTimeout(mv);
+  if(kind==="wolf"){score=Math.max(0,score-3);combo=0;$("foxMsg").textContent="Oops, that's a wolf! -3 🐺"}
+  else{var m=1+Math.floor(combo/5);score+=(kind==="gold"?3:1)*m;combo++;$("foxMsg").textContent=kind==="gold"?"Golden fox! +"+3*m+" 🌟":"Nice!"}
+  info();spawn();
+}
+function stopFox(){run=false;clearTimeout(mv);clearInterval(tm);clr();$("foxStart").disabled=false}
+$("foxStart").addEventListener("click",function(){
+  stopFox();score=0;left=20;combo=0;run=true;info();
+  $("foxTime").textContent="20";$("foxMsg").textContent="Go go go! Avoid the wolf 🐺";
+  this.disabled=true;spawn();
+  tm=setInterval(function(){
+    left--;$("foxTime").textContent=left;
+    if(left<=0){
+      stopFox();
+      if(score>num("fp_best")){sv("fp_best",String(score));$("foxBest").textContent=score;$("foxMsg").textContent="New best: "+score+"! 🎉"}
+      else{$("foxMsg").textContent="Time's up! Score: "+score}
+    }
+  },1000);
+});
+
+/* Memory: Easy (6 pairs) / Hard (10 pairs, 26 moves max, timer) */
+var lv="easy",first=null,lock=false,moves=0,pairs=0,total=6,limit=0,t0=0,mt=null;
+var E=["🦊","🍀","⭐","🧡","✨","🎵","🌙","🍊","🐾","🎀"];
+function showMoves(){$("memMoves").textContent=moves+(limit?"/"+limit:"")}
+function mem(){
+  clearInterval(mt);mt=null;$("memTime").textContent="0";
+  total=lv==="hard"?10:6;limit=lv==="hard"?26:0;
+  var d=E.slice(0,total);d=d.concat(d).sort(function(){return Math.random()-.5});
+  var g=$("memGrid");g.innerHTML="";g.className=lv==="hard"?"grid5":"grid4";
+  first=null;lock=false;moves=0;pairs=0;showMoves();
+  $("memMsg").textContent=lv==="hard"?"Hard: you only have 26 moves!":"Find all the pairs";
+  $("memBest").textContent=num("fp_mem_"+lv)||"-";
+  d.forEach(function(v){
+    var b=document.createElement("button");b.className="cell";b.textContent="❔";b.setAttribute("aria-label","Card");
+    b.addEventListener("click",function(){
+      if(lock||b===first||b.classList.contains("ok"))return;
+      if(!mt){t0=Date.now();mt=setInterval(function(){$("memTime").textContent=Math.floor((Date.now()-t0)/1000)},500)}
+      b.textContent=v;b.dataset.v=v;
+      if(!first){first=b;return}
+      moves++;showMoves();
+      if(first.dataset.v===v){
+        first.classList.add("ok");b.classList.add("ok");first=null;pairs++;
+        if(pairs===total){
+          clearInterval(mt);var key="fp_mem_"+lv,best=num(key);
+          if(!best||moves<best){sv(key,String(moves));$("memBest").textContent=moves;$("memMsg").textContent="New best: "+moves+" moves! 🎉"}
+          else{$("memMsg").textContent="You did it in "+moves+" moves! 🎉"}
+        }
+      }else if(limit&&moves>=limit){
+        lock=true;clearInterval(mt);$("memMsg").textContent="Out of moves 😭 Tap New game";
+      }else{
+        lock=true;var a=first;first=null;
+        setTimeout(function(){a.textContent="❔";b.textContent="❔";lock=false},650);
+      }
+    });
+    g.appendChild(b);
+  });
+}
+document.querySelectorAll(".lv").forEach(function(b){b.addEventListener("click",function(){
+  lv=b.dataset.l;
+  document.querySelectorAll(".lv").forEach(function(x){x.setAttribute("aria-pressed",x===b?"true":"false")});
+  mem();
+})});
+$("memAgain").addEventListener("click",mem);mem();
+
+/* Pattern (Simon): repeat a growing sequence */
+var pads=[],seq=[],step=0,accept=false,pto=[];
+var PC=[["🦊","#F58B4C"],["🍀","#7ED9A6"],["⭐","#F7D154"],["🧡","#F28DA6"]];
+var pg=$("padGrid");
+PC.forEach(function(c,i){
+  var b=document.createElement("button");b.className="pad";b.style.background=c[1];b.textContent=c[0];
+  b.setAttribute("aria-label","Pad "+(i+1));b.addEventListener("click",function(){padTap(i)});
+  pg.appendChild(b);pads.push(b);
+});
+$("patBest").textContent=num("fp_pat");
+function lit(i,ms){pads[i].classList.add("lit");pto.push(setTimeout(function(){pads[i].classList.remove("lit")},ms))}
+function play(){
+  accept=false;step=0;$("patMsg").textContent="Watch...";
+  var gap=Math.max(300,650-seq.length*25);
+  seq.forEach(function(v,k){pto.push(setTimeout(function(){lit(v,gap*0.6)},500+k*gap))});
+  pto.push(setTimeout(function(){accept=true;$("patMsg").textContent="Your turn!"},500+seq.length*gap));
+}
+function nextRound(){seq.push(Math.floor(Math.random()*4));$("patRound").textContent=seq.length;play()}
+function stopPat(){pto.forEach(clearTimeout);pto=[];accept=false;pads.forEach(function(p){p.classList.remove("lit")});$("patStart").disabled=false}
+function padTap(i){
+  if(!accept)return;lit(i,180);
+  if(i!==seq[step]){
+    var r=seq.length-1;stopPat();
+    if(r>num("fp_pat")){sv("fp_pat",String(r));$("patBest").textContent=r;$("patMsg").textContent="New best: "+r+" rounds! 🎉"}
+    else{$("patMsg").textContent="Game over. You cleared "+r+" rounds"}
+    return;
+  }
+  step++;
+  if(step===seq.length){accept=false;$("patMsg").textContent="Nice! ✨";pto.push(setTimeout(nextRound,800))}
+}
+$("patStart").addEventListener("click",function(){
+  stopPat();seq=[];this.disabled=true;$("patMsg").textContent="Get ready...";nextRound();
+});
+})();
+</script>
+</body>
+</html>
